@@ -24,24 +24,25 @@ object RUBigDataApp {
               classOf[WarcRecord]                     // Value
     )   
 		
+	def getContent(record: WarcRecord):String = {
+	  val cLen = record.header.contentLength.toInt
+	  //val cStream = record.getPayload.getInputStreamComplete()
+	  val cStream = record.getPayload.getInputStream()
+	  val content = new java.io.ByteArrayOutputStream();
 
-  	def getContent(record: WarcRecord):String = {
-  		val cLen = record.header.contentLength.toInt
-	  	//val cStream = record.getPayload.getInputStreamComplete()
-	  	val cStream = record.getPayload.getInputStream()
-	  	val content = new java.io.ByteArrayOutputStream();
-
-	  	val buf = new Array[Byte](cLen)
+	  val buf = new Array[Byte](cLen)
 	  
-	  	var nRead = cStream.read(buf)
-	  	while (nRead != -1) {
-			content.write(buf, 0, nRead)
-			nRead = cStream.read(buf)
-  		}
-	cStream.close()
-  
-	content.toString("UTF-8");
+  	  var nRead = cStream.read(buf)
+	  while (nRead != -1) {
+		content.write(buf, 0, nRead)
+		nRead = cStream.read(buf)
+	  }
+
+	  cStream.close()
+	  
+	  content.toString("UTF-8");
 	}
+  	
 	
 
 	def HTML2Txt(content: String) = {
