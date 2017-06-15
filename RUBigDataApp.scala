@@ -12,7 +12,14 @@ import nl.surfsara.warcutils.WarcInputFormat
 import org.jwat.warc.{WarcConstants, WarcRecord}
 import org.apache.hadoop.io.LongWritable;
 import org.apache.commons.lang.StringUtils;
-
+import org.apache.spark.SparkConf
+reset( lastChanges= _.
+      set( "spark.serializer", "org.apache.spark.serializer.KryoSerializer" ).
+      set( "spark.kryo.classesToRegister", 
+          "org.apache.hadoop.io.LongWritable," +
+          "org.jwat.warc.WarcRecord," +
+          "org.jwat.warc.WarcHeader" )
+      )
 
 object RUBigDataApp {
   def main(args: Array[String]) {
