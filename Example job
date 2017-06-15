@@ -61,4 +61,5 @@ object RUBigDataApp {
 	  	map{wr => ( wr._2.header.warcTargetUriStr, HTML2Txt(getContent(wr._2)) )}.cache()
 	  
 	println("krijg ik iets")
+	}
 }
