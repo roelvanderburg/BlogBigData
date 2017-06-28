@@ -13,13 +13,7 @@ import org.jwat.warc.{WarcConstants, WarcRecord}
 import org.apache.hadoop.io.LongWritable;
 import org.apache.commons.lang.StringUtils;
 import org.apache.spark.SparkConf
-reset( lastChanges= _.
-      set( "spark.serializer", "org.apache.spark.serializer.KryoSerializer" ).
-      set( "spark.kryo.classesToRegister", 
-          "org.apache.hadoop.io.LongWritable," +
-          "org.jwat.warc.WarcRecord," +
-          "org.jwat.warc.WarcHeader" )
-      )
+
 
 object RUBigDataApp {
   def main(args: Array[String]) {
@@ -60,8 +54,8 @@ object RUBigDataApp {
 	def HTML2Txt(content: String) = {
 	  try {
 		  
-		     val htmltree = Jsoup.parse(content)//.text().replaceAll("[\\r\\n]+", " ")
-		     htmltree.select(".article_body").first.text()
+		     val htmltree = Jsoup.parse(content).text().replaceAll("[\\r\\n]+", " ")
+		    // htmltree.select(".article_body").first.text()
 	  }
 	  catch {
 		case e: Exception => ""
@@ -73,6 +67,38 @@ object RUBigDataApp {
 	  	filter{ _._2.getHttpHeader().contentType.startsWith("text/html") }.
 	  	map{wr => ( wr._2.header.warcTargetUriStr, HTML2Txt(getContent(wr._2)) )}.cache()
 	  
-	println("krijg ik iets")
+	
+	  
+	  //////////////////////////////////////
+	  
+	  val contents = warcc.map{page => (page._1, page._2)}.filter(_._2 != "").map{ pp => pp._2}
+
+contents.take(1)
+
+//val body = articles.map{ tt => (tt._1, tt._2)}.filter(_._2 != "").map{tt => tt._2}
+contents.count
+
+
+
+
+
+ val listwords = contents.flatMap{(article => article.split(" "))}
+                             .filter (_ != "")
+                             .map(word =>(word.toLowerCase,1))
+                            
+
+
+val wc = listwords.reduceByKey(_ + _) 
+val top20 = wc.takeOrdered(20)(Ordering[Int].reverse.on(x=>x._2)).take(10)
+
+
+val lijsttrekkers = "rutte klaver pechtold".split(" ")
+
+
+val rutte = wc.filter(wr => lijsttrekkers.contains(wr._1))
+
+rutte.take(10)
+	  
+	  
 	}
 }
