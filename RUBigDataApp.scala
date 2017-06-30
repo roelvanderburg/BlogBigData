@@ -43,11 +43,44 @@ object RUBigDataApp {
       filter{ _._2.getHttpHeader.contentType != null }.
       filter{ _._2.getHttpHeader().contentType.startsWith("text/html") }.
       filter{ _._2.header.contentLength.toInt > 0 }.
-      map{wr => ( wr._2.header.warcTargetUriStr, getContent(wr._2) )}		  
+      map{wr => ( wr._2.header.warcTargetUriStr, HTML2Txt(getContent(wr._2)) )}		  
 	
  // loaded in all warcfiles
 	  
 	  def getContent(record: WarcRecord):String = {
+	  val cLen = record.header.contentLength.toInt
+	  //val cStream = record.getPayload.getInputStreamComplete()
+	  val cStream = record.getPayload.getInputStream()
+	  val content = new java.io.ByteArrayOutputStream();
+
+	  val buf = new Array[Byte](cLen)
+	  
+  	  var nRead = cStream.read(buf)
+	  while (nRead != -1) {
+		content.write(buf, 0, nRead)
+		nRead = cStream.read(buf)
+	  }
+
+	  cStream.close()
+	  
+	  content.toString("UTF-8");
+	}
+  	
+	
+
+	def HTML2Txt(content: String) = {
+	  try {
+		     val htmltree = Jsoup.parse(content).text().replaceAll("[\\r\\n]+", " ")
+		    // htmltree.select(".article_body").first.text()
+	  }
+	  catch {
+		case e: Exception => ""
+	  }
+	}
+
+	  
+	  //////////////////////////////////////
+	 def getContent(record: WarcRecord):String = {
 	  val cLen = record.header.contentLength.toInt
 	  //val cStream = record.getPayload.getInputStreamComplete()
 	  val cStream = record.getPayload.getInputStream()
@@ -102,15 +135,12 @@ object RUBigDataApp {
 	val top20 = wc.takeOrdered(20)(Ordering[Int].reverse.on(x=>x._2)).take(10)
 
 
-	val lijsttrekkers = "rutte klaver pechtold".split(" ")
-
+	val lijsttrekkers = "rutte klaver pechtold wilders roemer buma asscher thieme".split(" ")
+ 
 
 	val rutte = wc.filter(wr => lijsttrekkers.contains(wr._1))
-
-	rutte.take(10).foreach(tuple=>println(tuple))
-	// val numAs = data.filter(line => line.contains("a")).count()
-    	// val numBs = data.filter(line => line.contains("b")).count()
-    	// println("Lines with a: %s, Lines with b: %s".format(numAs, numBs))	  
+//   rutte.take(1)
+	rutte.take(10).foreach(tuple=>println(tuple))  
 
 	}
 }
