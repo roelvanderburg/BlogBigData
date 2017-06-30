@@ -18,19 +18,36 @@ import org.apache.spark.SparkConf
 object RUBigDataApp {
   def main(args: Array[String]) {
    
-    val conf = new SparkConf().setAppName("RUBigDataApp")
+    val conf = new SparkConf().setAppName("BigdataCustom")
     val sc = new SparkContext(conf)
 
-    val warcfile = "data/public/common-crawl/crawl-data/CC-MAIN-2016-07/segments/1454701145578.23/warc/CC-MAIN-20160205193905-00185-ip-10-236-182-209.ec2.internal.warc.gz"
+
+    var rf = FileSystem.get(sc.hadoopConfiguration)
+                             .listStatus(new Path(CCdir))
+                             .flatMap(x =>
+                                FileSystem.get(sc.hadoopConfiguration)
+                                          .listStatus(x.getPath().suffix("/warc/"))
+                                          .map(y => y.getPath))
+                             .mkString(",")
+
+    val warcfile = sc.newAPIHadoopFile(
+                rf,
+                classOf[WarcInputFormat],               // InputFormat
+                classOf[LongWritable],                  // Key  
+                classOf[WarcRecord]                     // Value
+        )
+	   	  
+	  
+    val warcc = warcfile.
+      filter{ _._2.header.warcTypeIdx == 2 }.
+      filter{ _._2.getHttpHeader.contentType != null }.
+      filter{ _._2.getHttpHeader().contentType.startsWith("text/html") }.
+      filter{ _._2.header.contentLength.toInt > 0 }.
+      map{wr => ( wr._2.header.warcTargetUriStr, getContent(wr._2) )}		  
 	
-    val warcf = sc.newAPIHadoopFile(
-              warcfile,
-              classOf[WarcInputFormat],               // InputFormat
-              classOf[LongWritable],                  // Key
-              classOf[WarcRecord]                     // Value
-    )   
-		
-	def getContent(record: WarcRecord):String = {
+ // loaded in all warcfiles
+	  
+	  def getContent(record: WarcRecord):String = {
 	  val cLen = record.header.contentLength.toInt
 	  //val cStream = record.getPayload.getInputStreamComplete()
 	  val cStream = record.getPayload.getInputStream()
@@ -53,7 +70,6 @@ object RUBigDataApp {
 
 	def HTML2Txt(content: String) = {
 	  try {
-		  
 		     val htmltree = Jsoup.parse(content).text().replaceAll("[\\r\\n]+", " ")
 		    // htmltree.select(".article_body").first.text()
 	  }
@@ -62,43 +78,39 @@ object RUBigDataApp {
 	  }
 	}
 
-	  val warcc = warcf.
-	  	filter{ _._2.header.warcTypeIdx == 2 /* response */ }.
-	  	filter{ _._2.getHttpHeader().contentType.startsWith("text/html") }.
-	  	map{wr => ( wr._2.header.warcTargetUriStr, HTML2Txt(getContent(wr._2)) )}.cache()
-	  
-	
 	  
 	  //////////////////////////////////////
 	  
 	  val contents = warcc.map{page => (page._1, page._2)}.filter(_._2 != "").map{ pp => pp._2}
 
-contents.take(1)
+//	contents.take(1)
 
-//val body = articles.map{ tt => (tt._1, tt._2)}.filter(_._2 != "").map{tt => tt._2}
-contents.count
-
-
+	//val body = articles.map{ tt => (tt._1, tt._2)}.filter(_._2 != "").map{tt => tt._2}
+	//contents.count
 
 
 
- val listwords = contents.flatMap{(article => article.split(" "))}
+
+
+ 	val listwords = contents.flatMap{(article => article.split(" "))}
                              .filter (_ != "")
                              .map(word =>(word.toLowerCase,1))
                             
 
 
-val wc = listwords.reduceByKey(_ + _) 
-val top20 = wc.takeOrdered(20)(Ordering[Int].reverse.on(x=>x._2)).take(10)
+	val wc = listwords.reduceByKey(_ + _) 
+	val top20 = wc.takeOrdered(20)(Ordering[Int].reverse.on(x=>x._2)).take(10)
 
 
-val lijsttrekkers = "rutte klaver pechtold".split(" ")
+	val lijsttrekkers = "rutte klaver pechtold".split(" ")
 
 
-val rutte = wc.filter(wr => lijsttrekkers.contains(wr._1))
+	val rutte = wc.filter(wr => lijsttrekkers.contains(wr._1))
 
-rutte.take(10)
-	  
-	  
+	rutte.take(10).foreach(tuple=>println(tuple))
+	// val numAs = data.filter(line => line.contains("a")).count()
+    	// val numBs = data.filter(line => line.contains("b")).count()
+    	// println("Lines with a: %s, Lines with b: %s".format(numAs, numBs))	  
+
 	}
 }
