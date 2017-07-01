@@ -60,7 +60,7 @@ object RUBigDataApp extends Serializable{
     val words = warcc.flatMap(line => line._2.split(" ")).filter{_ != null}
       // Transform into word and count.
     val politicianlist: List[String] = List("rutte", "wilders", "pechtold","buma","thieme","klaver","baudet","roemer")
-    val counts = words.map(word => (word, 1)).filter(wr => politicianlist.contais(wr._1)).reduceByKey{case (x, y) => x + y}.sortBy(x => -x._2)
+    val counts = words.map(word => (word, 1)).filter(wr => politicianlist.contains(wr._1)).reduceByKey{case (x, y) => x + y}.sortBy(x => -x._2)
     counts.take(10).foreach(tuple=>println(tuple))
   }
 
