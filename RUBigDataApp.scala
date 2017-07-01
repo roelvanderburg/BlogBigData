@@ -80,10 +80,7 @@ object RUBigDataApp {
 	  
 	  val contents = warcc.map{page => (page._1, page._2)}.filter(_._2 != "").map{ pp => pp._2}
 
-//	contents.take(1)
-
 	//val body = articles.map{ tt => (tt._1, tt._2)}.filter(_._2 != "").map{tt => tt._2}
-	//contents.count
 
 
 
@@ -94,20 +91,22 @@ object RUBigDataApp {
                              .map(word =>(word.toLowerCase,1))
                             
 
-
 	val wc = listwords.reduceByKey(_ + _) 
 	val top20 = wc.takeOrdered(20)(Ordering[Int].reverse.on(x=>x._2)).take(10)
 
 
-	val lijsttrekkers = "rutte klaver pechtold".split(" ")
+
+// val lijsttrekkers = "big data vagrant"
 
 
-	val rutte = wc.filter(wr => lijsttrekkers.contains(wr._1))
+
+	val file: List[String] = List("rutte", "wilders", "pechtold","buma","thieme","klaver","baudet","roemer")
+
+
+
+	val rutte = wc.filter(wr => file.contains(wr._1))
 
 	rutte.take(10).foreach(tuple=>println(tuple))
-	// val numAs = data.filter(line => line.contains("a")).count()
-    	// val numBs = data.filter(line => line.contains("b")).count()
-    	// println("Lines with a: %s, Lines with b: %s".format(numAs, numBs))	  
-
+	
 	}
 }
