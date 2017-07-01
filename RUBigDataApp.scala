@@ -1,5 +1,3 @@
-// Example job 
-
 package org.rubigdata
 
 import org.apache.spark.SparkContext
@@ -40,9 +38,7 @@ object RUBigDataApp extends Serializable{
     }
   }
 
-
-
-def main(args: Array[String]){
+  def main(args: Array[String]){
     val conf = new SparkConf().setAppName("RUBigDataApp")
     val warcfile = "/data/public/common-crawl/crawl-data/CC-MAIN-2016-07/segments/1454702039825.90/warc/*"
     val sc = new SparkContext(conf)
@@ -64,10 +60,8 @@ def main(args: Array[String]){
     val words = warcc.flatMap(line => line._2.split(" ")).filter{_ != null}
       // Transform into word and count.
     val politicianlist: List[String] = List("rutte", "wilders", "pechtold","buma","thieme","klaver","baudet","roemer")
-    val rutte = words.filter(wr => politicianlist.contains(wr._1))
-
-	
-    val counts = words.map(word => (word, 1)).reduceByKey{case (x, y) => x + y}.sortBy(x => -x._2)
-    rutte.take(10).foreach(tuple=>println(tuple))  }
+    val counts = words.map(word => (word, 1)).filter(wr => politicianlist.contais(wr._1)).reduceByKey{case (x, y) => x + y}.sortBy(x => -x._2)
+    counts.take(10).foreach(tuple=>println(tuple))
+  }
 
 }
