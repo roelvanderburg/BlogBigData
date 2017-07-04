@@ -44,7 +44,7 @@ object RUBigDataApp extends Serializable{
     
     
     
-    val warcfile = "/data/public/common-crawl/crawl-data/CC-MAIN-2016-07/segments/*/warc/*"
+    val warcfile = "/data/public/common-crawl/crawl-data/CC-MAIN-2015-48/segments/*/warc/*"
     val sc = new SparkContext(conf)
 
     val warcf = sc.newAPIHadoopFile(
