@@ -40,7 +40,11 @@ object RUBigDataApp extends Serializable{
 
   def main(args: Array[String]){
     val conf = new SparkConf().setAppName("RUBigDataApp")
-    val warcfile = "/data/public/common-crawl/crawl-data/CC-MAIN-2016-07/*"
+   
+    
+    
+    
+    val warcfile = "/data/public/common-crawl/crawl-data/CC-MAIN-2016-07/segments/*/warc/*"
     val sc = new SparkContext(conf)
 
     val warcf = sc.newAPIHadoopFile(
@@ -59,7 +63,7 @@ object RUBigDataApp extends Serializable{
       map{wr => ( wr._2.header.warcTargetUriStr, getContent(wr._2) )}.cache()
     val words = warcc.flatMap(line => line._2.split(" ")).filter{_ != null}
       // Transform into word and count.
-    val politicianlist: List[String] = List("rutte", "wilders", "pechtold","buma","thieme","klaver","baudet","roemer")
+    val politicianlist: List[String] = List("rutte", "wilders", "pechtold","buma","thieme","klaver","baudet","roemer","asscher","krol")
    
     val counts = words.map(word => (word, 1)).filter(wr => politicianlist.contains(wr._1)).reduceByKey{case (x, y) => x + y}.sortBy(x => -x._2)
     counts.take(10).foreach(tuple=>println(tuple))
