@@ -39,7 +39,7 @@ object RUBigDataApp extends Serializable{
   }
 
   def main(args: Array[String]){
-    val conf = new SparkConf().setAppName("RUBigDataApp")
+    val conf = new SparkConf().setAppName("RUBigDataAppAllWarcOnSegment")
    
     
     
